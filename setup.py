@@ -2,14 +2,14 @@ from pip._internal.cli.main import main
 
 
 common_packages = [
-    "psutil>=5.9.4",
-    "beautifulsoup4>=4.11.1",
-    "colorama>=0.4.6",
-    "requests==2.28.1",
-    "pytelegrambotapi==4.8.0",
-    "pillow>=9.3.0",
-    "aiohttp==3.8.3",
-    "requests_toolbelt==0.10.1"
+    "psutil",
+    "beautifulsoup4",
+    "colorama",
+    "requests",
+    "pytelegrambotapi",
+    "pillow",
+    "aiohttp",
+    "requests_toolbelt"
 ]
 
 
