@@ -1,0 +1,512 @@
+"""
+В данном модуле написаны инструменты, которыми пользуется Telegram бот.
+"""
+
+from __future__ import annotations
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from exbot import Exbot
+from locales.localizer import Localizer
+from telebot.types import InlineKeyboardMarkup as K, InlineKeyboardButton as B
+import configparser
+import datetime
+import os.path
+import json
+import time
+import json
+from os.path import exists
+from FunPayAPI.common.utils import RegularExpressions
+from bs4 import BeautifulSoup as bs
+import tg_bot.CBT
+from bs4 import BeautifulSoup
+from FunPayAPI.account import Account
+from FunPayAPI.types import OrderStatuses
+from FunPayAPI.updater.events import *
+localizer = Localizer()
+_ = localizer.translate
+import Utils.exbot_tools
+from tg_bot import CBT
+
+
+class NotificationTypes:
+    """
+    Класс с типами Telegram уведомлений.
+    """
+    bot_start = "1"
+    """Уведомление о старте бота."""
+    new_message = "2"
+    """Уведомление о новом сообщении."""
+    command = "3"
+    """Уведомление о введенной команде."""
+    new_order = "4"
+    """Уведомление о новом заказе."""
+    order_confirmed = "5"
+    """Уведомление о подтверждении заказа."""
+    review = "5r"
+    """Уведомление об отзыве."""
+    lots_restore = "6"
+    """Уведомление о восстановлении лота."""
+    lots_deactivate = "7"
+    """Уведомление о деактивации лота."""
+    delivery = "8"
+    """Уведомление о выдаче товара."""
+    lots_raise = "9"
+    """Уведомление о поднятии лотов."""
+    other = "10"
+    """Прочие уведомления (плагины)."""
+    announcement = "11"
+    """Новости / объявления."""
+    ad = "12"
+    """Реклама."""
+    critical = "13"
+    """Не отключаемые критически важные уведомления."""
+
+
+def load_authorized_users() -> list[int]:
+    """
+    Загружает авторизированных пользователей из кэша.
+
+    :return: список из id авторизированных пользователей.
+    """
+    if not os.path.exists("storage/cache/tg_authorized_users.json"):
+        return []
+    with open("storage/cache/tg_authorized_users.json", "r", encoding="utf-8") as f:
+        data = f.read()
+    return json.loads(data)
+
+
+def load_notification_settings() -> dict:
+    """
+    Загружает настройки Telegram уведомлений из кэша.
+
+    :return: настройки Telegram уведомлений.
+    """
+    if not os.path.exists("storage/cache/notifications.json"):
+        return {}
+    with open("storage/cache/notifications.json", "r", encoding="utf-8") as f:
+        return json.loads(f.read())
+
+
+def load_answer_templates() -> list[str]:
+    """
+    Загружает шаблоны ответов из кэша.
+
+    :return: шаблоны ответов из кэша.
+    """
+    if not os.path.exists("storage/cache/answer_templates.json"):
+        return []
+    with open("storage/cache/answer_templates.json", "r", encoding="utf-8") as f:
+        return json.loads(f.read())
+
+
+def save_authorized_users(users: list[int]) -> None:
+    """
+    Сохраняет ID авторизированных пользователей.
+
+    :param users: список id авторизированных пользователей.
+    """
+    if not os.path.exists("storage/cache/"):
+        os.makedirs("storage/cache/")
+    with open("storage/cache/tg_authorized_users.json", "w", encoding="utf-8") as f:
+        f.write(json.dumps(users))
+
+
+def save_notification_settings(settings: dict) -> None:
+    """
+    Сохраняет настройки Telegram-уведомлений.
+
+    :param settings: настройки Telegram-уведомлений.
+    """
+    if not os.path.exists("storage/cache/"):
+        os.makedirs("storage/cache/")
+    with open("storage/cache/notifications.json", "w", encoding="utf-8") as f:
+        f.write(json.dumps(settings))
+
+
+def save_answer_templates(templates: list[str]) -> None:
+    """
+    Сохраняет шаблоны ответов.
+
+    :param templates: список шаблонов.
+    """
+    if not os.path.exists("storage/cache/"):
+        os.makedirs("storage/cache")
+    with open("storage/cache/answer_templates.json", "w", encoding="utf-8") as f:
+        f.write(json.dumps(templates))
+
+
+def escape(text: str) -> str:
+    """
+    Форматирует текст под HTML разметку.
+
+    :param text: текст.
+    :return: форматированный текст.
+    """
+    escape_characters = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+    }
+    for char in escape_characters:
+        text = text.replace(char, escape_characters[char])
+    return text
+
+
+def bool_to_text(value: bool | int | str | None, on: str = "🟢", off: str = "🔴"):
+    if value is not None and int(value):
+        return on
+    return off
+
+
+def get_offset(element_index: int, max_elements_on_page: int) -> int:
+    """
+    Возвращает смещение списка элементов таким образом, чтобы элемент с индексом element_index оказался в конце списка.
+
+    :param element_index: индекс элемента, который должен оказаться в конце.
+    :param max_elements_on_page: максимальное кол-во элементов на 1 странице.
+    """
+    elements_amount = element_index + 1
+    elements_on_page = elements_amount % max_elements_on_page
+    elements_on_page = elements_on_page if elements_on_page else max_elements_on_page
+    if not elements_amount - elements_on_page:  # если это первая группа команд:
+        return 0
+    else:
+        return element_index - elements_on_page + 1
+
+
+def add_navigation_buttons(keyboard_obj: K, curr_offset: int,
+                           max_elements_on_page: int,
+                           elements_on_page: int, elements_amount: int,
+                           callback_text: str,
+                           extra: list | None = None) -> K:
+    """
+    Добавляет к переданной клавиатуре кнопки след. / пред. страница.
+
+    :param keyboard_obj: экземпляр клавиатуры.
+    :param curr_offset: текущее смещение списка.
+    :param max_elements_on_page: максимальное кол-во кнопок на 1 странице.
+    :param elements_on_page: текущее кол-во элементов на странице.
+    :param elements_amount: общее кол-во элементов.
+    :param callback_text: текст callback'а.
+    :param extra: доп. данные (будут перечислены через ":")
+    """
+    extra = (":" + ":".join(str(i) for i in extra)) if extra else ""
+    back, forward = True, True
+
+    if curr_offset > 0:
+        back_offset = curr_offset - max_elements_on_page if curr_offset > max_elements_on_page else 0
+        back_cb = f"{callback_text}:{back_offset}{extra}"
+        first_cb = f"{callback_text}:0{extra}"
+    else:
+        back, back_cb, first_cb = False, CBT.EMPTY, CBT.EMPTY
+
+    if curr_offset + elements_on_page < elements_amount:
+        forward_offset = curr_offset + elements_on_page
+        last_page_offset = get_offset(elements_amount - 1, max_elements_on_page)
+        forward_cb = f"{callback_text}:{forward_offset}{extra}"
+        last_cb = f"{callback_text}:{last_page_offset}{extra}"
+    else:
+        forward, forward_cb, last_cb = False, CBT.EMPTY, CBT.EMPTY
+
+    if back or forward:
+        keyboard_obj.row(B("◀️◀️", callback_data=first_cb), B("◀️", callback_data=back_cb),
+                         B("▶️", callback_data=forward_cb), B("▶️▶️", callback_data=last_cb))
+    return keyboard_obj
+
+
+
+def generate_profile_text(exbot: Exbot) -> str:
+    """
+    Генерирует текст с информацией об аккаунте.
+
+    :return: сгенерированный текст с информацией об аккаунте.
+    """
+    account = exbot.account
+    balance = exbot.balance
+    return f"""Статистика аккаунта <b><i>{account.username}</i></b>
+
+<b>ID:</b> <code>{account.id}</code>
+<b>Незавершенных заказов:</b> <code>{account.active_sales}</code>
+<b>Баланс:</b> 
+    <b>₽:</b> <code>{balance.total_rub}₽</code>, доступно для вывода <code>{balance.available_rub}₽</code>.
+    <b>$:</b> <code>{balance.total_usd}$</code>, доступно для вывода <code>{balance.available_usd}$</code>.
+    <b>€:</b> <code>{balance.total_eur}€</code>, доступно для вывода <code>{balance.available_eur}€</code>.
+
+<i>Обновлено:</i>  <code>{time.strftime('%H:%M:%S', time.localtime(account.last_update))}</code>"""
+
+ORDER_CONFIRMED = {}
+
+def message_hook(exbot: Exbot, event: NewMessageEvent):
+    if event.message.type not in [MessageTypes.ORDER_CONFIRMED, MessageTypes.ORDER_CONFIRMED_BY_ADMIN, MessageTypes.ORDER_REOPENED, MessageTypes.REFUND]:
+        return
+    if event.message.type not in [MessageTypes.ORDER_REOPENED, MessageTypes.REFUND] and bs(event.message.html, "html.parser").find("a").text == exbot.account.username:
+        return
+
+    id = RegularExpressions().ORDER_ID.findall(str(event.message))[0][1:]
+
+    if event.message.type in [MessageTypes.ORDER_REOPENED, MessageTypes.REFUND]:
+        if id in ORDER_CONFIRMED:
+            del ORDER_CONFIRMED[id]
+    else:
+        ORDER_CONFIRMED[id] = {"time": time.time(), "price": exbot.account.get_order(id).sum}
+        with open("storage/cache/advProfileStat.json", "w", encoding="UTF-8") as f:
+            f.write(json.dumps(ORDER_CONFIRMED, indent=4, ensure_ascii=False))
+
+
+def get_sales(account: Account, start_from: str | None = None, include_paid: bool = True, include_closed: bool = True,
+              include_refunded: bool = True, exclude_ids: list[str] | None = None,
+              **filters) -> tuple[str | None, list[types.OrderShortcut]]:
+    exclude_ids = exclude_ids or []
+    link = "https://funpay.com/orders/trade?"
+
+    for name in filters:
+        link += f"{name}={filters[name]}&"
+    link = link[:-1]
+
+    if start_from:
+        filters["continue"] = start_from
+
+    response = account.method("post" if start_from else "get", link, {}, filters, raise_not_200=True)
+    html_response = response.content.decode()
+
+    parser = bs(html_response, "html.parser")
+    check_user = parser.find("div", {"class": "content-account content-account-login"})
+
+    next_order_id = parser.find("input", {"type": "hidden", "name": "continue"})
+    if not next_order_id:
+        next_order_id = None
+    else:
+        next_order_id = next_order_id.get("value")
+
+    order_divs = parser.find_all("a", {"class": "tc-item"})
+    if not order_divs:
+        return None, []
+
+    sells = []
+    for div in order_divs:
+        classname = div.get("class")
+        if "warning" in classname:
+            if not include_refunded:
+                continue
+            order_status = types.OrderStatuses.REFUNDED
+        elif "info" in classname:
+            if not include_paid:
+                continue
+            order_status = types.OrderStatuses.PAID
+        else:
+            if not include_closed:
+                continue
+            order_status = types.OrderStatuses.CLOSED
+
+        order_id = div.find("div", {"class": "tc-order"}).text[1:]
+        if order_id in exclude_ids:
+            continue
+
+        description = div.find("div", {"class": "order-desc"}).find("div").text
+        price = float(div.find("div", {"class": "tc-price"}).text.split(" ")[0])
+
+        buyer_div = div.find("div", {"class": "media-user-name"}).find("span")
+        buyer_username = buyer_div.text
+        buyer_id = int(buyer_div.get("data-href")[:-1].split("https://funpay.com/users/")[1])
+
+        order_obj = types.OrderShortcut(order_id, description, price, buyer_username, buyer_id, order_status,
+                                        datetime.datetime.now(), "", str(div))
+        sells.append(order_obj)
+
+    return next_order_id, sells
+
+def generate_adv_profile(exbot: Exbot) -> str:
+    account = exbot.account
+    balance = exbot.balance
+    if balance.total_eur != 0:
+        currency = "€"
+        balance.balance.total_eur
+    elif balance.total_eur != 0:
+        currency = "$"
+        balance.balance.total_eur
+    elif balance.total_eur != 0:
+        currency = "₽"
+        balance.balance.total_eur
+    else:
+        balance = 0
+        currency = "₽"
+    if exists("storage/cache/advProfileStat.json"):
+        with open("storage/cache/advProfileStat.json", "r", encoding="utf-8") as f:
+            global ORDER_CONFIRMED
+            ORDER_CONFIRMED = json.loads(f.read())
+    sales = {"day": 0, "week": 0, "month": 0, "all": 0}
+    salesPrice = {"day": 0.0, "week": 0.0, "month": 0.0, "all": 0.0}
+    refunds = {"day": 0, "week": 0, "month": 0, "all": 0}
+    refundsPrice = {"day": 0.0, "week": 0.0, "month": 0.0, "all": 0.0}
+    canWithdraw = {"now": 0.0, "hour": 0.0, "day": 0.0, "2day": 0.0}
+
+    account.get()
+
+    for order in ORDER_CONFIRMED.copy():
+        if time.time() - ORDER_CONFIRMED[order]["time"] > 172800:
+            del ORDER_CONFIRMED[order]
+            continue
+        if time.time() - ORDER_CONFIRMED[order]["time"] > 169200:
+            canWithdraw["hour"] += ORDER_CONFIRMED[order]["price"]
+        elif time.time() - ORDER_CONFIRMED[order]["time"] > 86400:
+            canWithdraw["day"] += ORDER_CONFIRMED[order]["price"]
+        else:
+            canWithdraw["2day"] += ORDER_CONFIRMED[order]["price"]
+
+    randomLotPageLink = bs(account.method("get", "https://funpay.com/lots/693/", {}, {}).text, "html.parser").find("a", {"class": "tc-item"})["href"]
+    randomLotPageParse = bs(account.method("get", randomLotPageLink, {}, {}).text, "html.parser")
+
+    balance = randomLotPageParse.select_one(".badge-balance").text.split(" ")[0]
+    currency = randomLotPageParse.select_one(".badge-balance").text.split(" ")[1]
+
+    canWithdraw["now"] = randomLotPageParse.find("select", {"class": "form-control input-lg selectpicker"})["data-balance-rub"]
+    if currency == "$":
+        canWithdraw["now"] = randomLotPageParse.find("select", {"class": "form-control input-lg selectpicker"})["data-balance-usd"]
+    elif currency == "€":
+        canWithdraw["now"] = randomLotPageParse.find("select", {"class": "form-control input-lg selectpicker"})["data-balance-eur"]
+
+    next_order_id, all_sales = get_sales(account)
+
+    while next_order_id != None:
+        time.sleep(1)
+        next_order_id, new_sales = get_sales(account, start_from=next_order_id)
+        all_sales += new_sales
+
+    for sale in all_sales:
+        if sale.status == OrderStatuses.REFUNDED:
+            refunds["all"] += 1
+            refundsPrice["all"] += sale.price
+        else:
+            sales["all"] += 1
+            salesPrice["all"] += sale.price
+
+        upperDate = bs(sale.html, "html.parser").find("div", {"class": "tc-date-time"}).text
+        date = bs(sale.html, "html.parser").find("div", {"class": "tc-date-left"}).text
+
+        if "сегодня" in upperDate or "сьогодні" in upperDate or "today" in upperDate:
+            if sale.status == OrderStatuses.REFUNDED:
+                refunds["day"] += 1
+                refunds["week"] += 1
+                refunds["month"] += 1
+                refundsPrice["day"] += sale.price
+                refundsPrice["week"] += sale.price
+                refundsPrice["month"] += sale.price
+            else:
+                sales["day"] += 1
+                sales["week"] += 1
+                sales["month"] += 1
+                salesPrice["day"] += sale.price
+                salesPrice["week"] += sale.price
+                salesPrice["month"] += sale.price
+        elif "день" in date or "дня" in date or "дней" in date or "дні" in date or "day" in date or "час" in date or "hour" in date or "годин" in date:
+            if sale.status == OrderStatuses.REFUNDED:
+                refunds["week"] += 1
+                refunds["month"] += 1
+                refundsPrice["week"] += sale.price
+                refundsPrice["month"] += sale.price
+            else:
+                sales["week"] += 1
+                sales["month"] += 1
+                salesPrice["week"] += sale.price
+                salesPrice["month"] += sale.price
+        elif "недел" in date or "тижд" in date or "week" in date:
+            if sale.status == OrderStatuses.REFUNDED:
+                refunds["month"] += 1
+                refundsPrice["month"] += sale.price
+            else:
+                sales["month"] += 1
+                salesPrice["month"] += sale.price
+
+
+
+    return f"""Статистика аккаунта <b><i>{account.username}</i></b>
+
+<b>ID:</b> <code>{account.id}</code>
+<b>Баланс:</b> <code>{balance} {currency}</code>
+<b>Незавершенных заказов:</b> <code>{account.active_sales}</code>
+
+<b>Доступно для вывода</b>
+<b>Сейчас:</b> <code>{canWithdraw["now"].split('.')[0]} {currency}</code>
+<b>Через час:</b> <code>+{"{:.1f}".format(canWithdraw["hour"])} {currency}</code>
+<b>Через день:</b> <code>+{"{:.1f}".format(canWithdraw["day"])} {currency}</code>
+<b>Через 2 дня:</b> <code>+{"{:.1f}".format(canWithdraw["2day"])} {currency}</code>
+
+<b>Товаров продано</b>
+<b>За день:</b> <code>{sales["day"]} ({"{:.1f}".format(salesPrice["day"])} {currency})</code>
+<b>За неделю:</b> <code>{sales["week"]} ({"{:.1f}".format(salesPrice["week"])} {currency})</code>
+<b>За месяц:</b> <code>{sales["month"]} ({"{:.1f}".format(salesPrice["month"])} {currency})</code>
+<b>За всё время:</b> <code>{sales["all"]} ({"{:.1f}".format(salesPrice["all"])} {currency})</code>
+
+<b>Товаров возвращено</b>
+<b>За день:</b> <code>{refunds["day"]} ({"{:.1f}".format(refundsPrice["day"])} {currency})</code>
+<b>За неделю:</b> <code>{refunds["week"]} ({"{:.1f}".format(refundsPrice["week"])} {currency})</code>
+<b>За месяц:</b> <code>{refunds["month"]} ({"{:.1f}".format(refundsPrice["month"])} {currency})</code>
+<b>За всё время:</b> <code>{refunds["all"]} ({"{:.1f}".format(refundsPrice["all"])} {currency})</code>
+
+<i>Обновлено:</i>  <code>{time.strftime('%H:%M:%S', time.localtime(account.last_update))}</code>"""
+
+def get_orders(acc: Account, start_from: str) -> tuple[str | None, list[str]]:
+    """
+    Получает список ордеров на аккаунте.
+    :return: Список с заказами.
+    """
+    attempts = 3
+    while attempts:
+        try:
+            result = acc.get_sells(start_from=start_from or None, state="paid")
+            break
+        except:
+            attempts -= 1
+            time.sleep(1)
+    else:
+        raise Exception
+    orders = result[1]
+    old_orders = []
+    for i in orders:
+        parser = BeautifulSoup(i.html, "html.parser")
+        time_text = parser.find("div", {"class": "tc-date-left"}).text
+        if any(map(time_text.__contains__, ["сек", "мин", "час", "тол"])):
+            continue
+        old_orders.append(parser.find("div", {"class": "tc-order"}).text)
+    return result[0], old_orders
+
+def get_all_old_orders(acc: Account) -> list[str]:
+    """
+    Получает список все старых ордеров на аккаунте.
+    :param acc: экземпляр аккаунта.
+    :return: список старых заказов.
+    """
+    start_from = ""
+    old_orders = []
+    while start_from is not None:
+        result = get_orders(acc, start_from)
+        start_from = result[0]
+        old_orders.extend(result[1])
+        time.sleep(1)
+    return old_orders
+
+def generate_lot_info_text(lot_obj: configparser.SectionProxy) -> str:
+    """
+    Генерирует текст с информацией о лоте.
+
+    :param lot_obj: секция лота в конфиге автовыдачи.
+
+    :return: сгенерированный текст с информацией о лоте.
+    """
+    if lot_obj.get("productsFileName") is None:
+        file_path = "<b><u>не привязан.</u></b>"
+        products_amount = "<code>∞</code>"
+    else:
+        file_path = f"<code>storage/products/{lot_obj.get('productsFileName')}</code>"
+        if not os.path.exists(f"storage/products/{lot_obj.get('productsFileName')}"):
+            with open(f"storage/products/{lot_obj.get('productsFileName')}", "w", encoding="utf-8"):
+                pass
+        products_amount = Utils.exbot_tools.count_products(f"storage/products/{lot_obj.get('productsFileName')}")
+        products_amount = f"<code>{products_amount}</code>"
+
+    message = f"""<b>{escape(lot_obj.name)}</b>\n
+<b><i>Текст выдачи:</i></b> <code>{escape(lot_obj["response"])}</code>\n
+<b><i>Кол-во товаров: </i></b> {products_amount}\n
+<b><i>Файл с товарами: </i></b>{file_path}\n
+<i>Обновлено:</i>  <code>{datetime.datetime.now().strftime('%H:%M:%S')}</code>"""
+    return message
