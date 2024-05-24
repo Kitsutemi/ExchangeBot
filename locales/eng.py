@@ -161,27 +161,27 @@ param_disabled = "❌ This parameter is disabled globally and cannot be changed 
                  "(/menu -> ⚙️ Global switches)."
 
 old_mode_help = """<b>New Message Receiving Mode</b>
-✅ <i>FPV</i> gets the full chat history and sees all data about all new messages.
-✅ <i>FPV</i> can see images in chat and forward them to <i>Telegram</i> chat.
-✅ <i>FPV</i> can determine exactly who wrote, whether it was you, your interlocutor, or a 3rd party (arbitrator).
-❌ Because <i>FPV</i> gets the full chat history to detect new messages, the chat becomes "read" (not lit orange).
+✅ <i>ExBot</i> gets the full chat history and sees all data about all new messages.
+✅ <i>ExBot</i> can see images in chat and forward them to <i>Telegram</i> chat.
+✅ <i>ExBot</i> can determine exactly who wrote, whether it was you, your interlocutor, or a 3rd party (arbitrator).
+❌ Because <i>ExBot</i> gets the full chat history to detect new messages, the chat becomes "read" (not lit orange).
 
 <b>Old Message Receiving Mode</b>
 ✅ Chats that you have not personally read remain unread (lit orange).
 ✅ Works a little bit faster than the new mode.
-❌ <i>FPV</i> doesn't get the full chat history, so it sees only the last message. If the user quickly writes several messages, <i>FPV</i> will see only the last one.
-❌ <i>FPV</i> cannot see images in chat and forward them to <i>Telegram</i> chat.
-❌ <i>FPV</i> cannot determine exactly who wrote: you or the person you are chatting with. If the chat is not read, then the message is from the interlocutor, otherwise it is from you. However, if you are viewing the chat when you receive messages, this logic can sometimes fail. Also, <i>FPV</i> will not be able to determine if a 3rd party (arbitrator) wrote into the chat.
+❌ <i>ExBot</i> doesn't get the full chat history, so it sees only the last message. If the user quickly writes several messages, <i>ExBot</i> will see only the last one.
+❌ <i>ExBot</i> cannot see images in chat and forward them to <i>Telegram</i> chat.
+❌ <i>ExBot</i> cannot determine exactly who wrote: you or the person you are chatting with. If the chat is not read, then the message is from the interlocutor, otherwise it is from you. However, if you are viewing the chat when you receive messages, this logic can sometimes fail. Also, <i>ExBot</i> will not be able to determine if a 3rd party (arbitrator) wrote into the chat.
 
-❗ If you click the <code>More</code> button in a new message notification, <i>FPV</i> will "read" the chat and show the last 15 messages, including images. <i>FPV</i> will also be able to determine who the author of the messages is."""
+❗ If you click the <code>More</code> button in a new message notification, <i>ExBot</i> will "read" the chat and show the last 15 messages, including images. <i>ExBot</i> will also be able to determine who the author of the messages is."""
 
 bot_started = """✅ Telegram bot is running!\n
 ✅ You can <b><u>customize configurations</u></b> and <b><u>make full use of the <i>Telegram</i> bot's functionality.</u></b>.\n
 ❌ <i>FunPay Exchange Bot</i> is not initialized yet and none of its functions work.\n
 🔃 As soon as <i>FunPay Exchange Bot</i> is initialized, this message will change.\n
-📋 If <i>FPV</i> does not initialize for a long time, check the logs with /logs"""
+📋 If <i>ExBot</i> does not initialize for a long time, check the logs with /logs"""
 
-fpv_init = """✅ <b><u>FunPay Exchange Bot initialized!</u></b>\n
+ExBot_init = """✅ <b><u>FunPay Exchange Bot initialized!</u></b>\n
 ℹ️ <b><i>Version:</i></b> <code>{}</code>
 👑 <b><i>Account:</i></b>  <code>{}</code> | <code>{}</code>
 💰 <b><i>Balance:</i></b> <code>{}₽, {}$, {}€</code>
@@ -193,21 +193,21 @@ test_ad_key_created = """✅ A one-time key for <code>{}</code> delivery has bee
 Send the command from below to chat with the user to whom you want to deliver the item.\n
 <code>!автовыдача {}</code>"""
 
-about = """<b>🐺 FunPay Exchange Bot 🐺 v{}</b>\n
-<i>Telegram chat:</i> @funpayplace
-<i>Developer:</i> NightStranger, Lemarty"""
+about = """<b>🐺 Биржевой бот 🐺 v{}</b>\n
+<i>Подготовлен:</i> Грецкий Дмитрий
+<i>Инфо:</i> Студент 3-го курса ФМиИТ ДонГУ"""
 
 sys_info = """<b><u>Data summary</u></b>
 
 <b>CPU:</b>
 {}
-    Used by <i>FPV</i>: <code>{}%</code>
+    Used by <i>ExBot</i>: <code>{}%</code>
 
 <b>RAM:</b>
     Total:  <code>{} MB</code>
     Used:  <code>{} MB</code>
     Free:  <code>{} MB</code>
-    Used by <i>FPV</i>:  <code>{} MB</code>
+    Used by <i>ExBot</i>:  <code>{} MB</code>
 
 <b>Other:</b>
     Uptime:  <code>{}</code>
@@ -240,9 +240,9 @@ update_backup_created = "✅ Backed up configs and storage in <code>backup.zip</
 update_backup_error = "❌ Failed to back up configs and storage."
 update_downloaded = "✅ The update is downloaded. Installing ..."
 update_download_error = "❌ An error occurred while downloading the update."
-update_done = "✅ The update is installed! Restart the FPV with the /restart command."
-update_done_exe = "✅ The update is installed! New <code>FPV.exe</code> is in <code>update</code> folder. "\
-                  "Turn off <i>FPV</i>, replace old <code>FPV.exe</code> with new one and run <code>Start.bat</code>. "
+update_done = "✅ The update is installed! Restart the ExBot with the /restart command."
+update_done_exe = "✅ The update is installed! New <code>ExBot.exe</code> is in <code>update</code> folder. "\
+                  "Turn off <i>ExBot</i>, replace old <code>ExBot.exe</code> with new one and run <code>Start.bat</code>. "
 update_install_error = "❌ An error occurred while installing the update."
 
 restarting = "Restarting..."
@@ -342,7 +342,7 @@ tmplt_msg_sent = "✅ Message sent to <a href=\"https://funpay.com/chat/?node={}
 
 # - Menus desc
 desc_main = "Select a settings category."
-desc_gs = "Here you can turn the basic <i>FPV</i> functions on and off."
+desc_gs = "Here you can turn the basic <i>ExBot</i> functions on and off."
 desc_ns = """Here you can configure notifications.\n
 <b><u>Settings are separate for each <i>Telegram</i> chat!</u></b>\n
 Current chat ID: <code>{}</code>"""
@@ -382,8 +382,8 @@ cmd_old_orders = "sends a list of open orders that are more than 24 hours old"
 cmd_sys = "system load information"
 cmd_keyboard = "open keyboard"
 cmd_change_cookie = "change golden_key cookie"
-cmd_restart = "restart FPV"
-cmd_power_off = "shutdown FPV"
+cmd_restart = "restart ExBot"
+cmd_power_off = "shutdown ExBot"
 
 
 # - Variables desc

@@ -544,14 +544,14 @@ class TGBot:
 
     def restart_exbot(self, m: Message):
         """
-        Перезапускает вертекс.
+        Перезапускает биржевого бота.
         """
         self.bot.send_message(m.chat.id, _("restarting"))
         exbot_tools.restart_program()
 
     def ask_power_off(self, m: Message):
         """
-        Просит подтверждение на отключение FPV.
+        Просит подтверждение на отключение бота.
         """
         self.bot.send_message(m.chat.id, _("power_off_0"), reply_markup=kb.power_off(self.exbot.instance_id, 0))
 
@@ -564,7 +564,7 @@ class TGBot:
 
     def power_off(self, c: CallbackQuery):
         """
-        Отключает FPV.
+        Отключает бота.
         """
         split = c.data.split(":")
         state = int(split[1])
@@ -808,7 +808,7 @@ class TGBot:
 
     def switch_param(self, c: CallbackQuery):
         """
-        Переключает переключаемые настройки FPV.
+        Переключает переключаемые настройки ExBot.
         """
         split = c.data.split(":")
         section, option = split[1], split[2]

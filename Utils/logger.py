@@ -133,7 +133,7 @@ LOGGER_CONFIG = {
             "handlers": ["cli_handler", "file_handler"],
             "level": "DEBUG"
         },
-        "FPV": {
+        "ExBot": {
             "handlers": ["cli_handler", "file_handler"],
             "level": "DEBUG"
         },

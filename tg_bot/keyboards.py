@@ -90,7 +90,7 @@ def main_settings(c: Exbot) -> K:
     """
     Генерирует клавиатуру основных переключателей (CBT.CATEGORY:main).
 
-    :param c: объект вертекса.
+    :param c: объект биржевого бота.
 
     :return: объект клавиатуры основных переключателей.
     """
@@ -116,7 +116,7 @@ def new_message_view_settings(c: Exbot) -> K:
     """
     Генерирует клавиатуру настроек вида уведомлений о новых сообщениях (CBT.CATEGORY:newMessageView).
 
-    :param c: объект вертекса.
+    :param c: объект биржевого бота.
 
     :return: объект клавиатуры настроек вида уведомлений о новых сообщениях.
     """
@@ -140,7 +140,7 @@ def greeting_settings(c: Exbot):
     """
     Генерирует клавиатуру настроек приветственного сообщения (CBT.CATEGORY:greetings).
 
-    :param c: объект вертекса.
+    :param c: объект биржевого бота.
 
     :return: объект клавиатуры настроек приветственного сообщения.
     """
@@ -162,7 +162,7 @@ def order_confirm_reply_settings(c: Exbot):
     """
     Генерирует клавиатуру настроек ответа на подтверждение заказа (CBT.CATEGORY:orderConfirm).
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
 
     :return: объект клавиатуры настроек ответа на подтверждение заказа.
     """
@@ -178,7 +178,7 @@ def review_reply_settings(c: Exbot):
     """
     Генерирует клавиатуру настроек ответа на отзыв (CBT.CATEGORY:reviewReply).
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
 
     :return: объект клавиатуры настроек ответа на отзыв.
     """
@@ -196,7 +196,7 @@ def notifications_settings(c: Exbot, chat_id: int) -> K:
     """
     Генерирует клавиатуру настроек уведомлений (CBT.CATEGORY:telegram).
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
     :param chat_id: ID чата, в котором вызвана клавиатура.
 
     :return: объект клавиатуры настроек уведомлений.
@@ -227,7 +227,7 @@ def announcements_settings(c: Exbot, chat_id: int):
     """
     Генерирует клавиатуру настроек уведомлений объявлений.
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
     :param chat_id: ID чата, в котором вызвана клавиатура.
 
     :return: объект клавиатуры настроек уведомлений объявлений.
@@ -248,7 +248,7 @@ def blacklist_settings(c: Exbot) -> K:
     """
     Генерирует клавиатуру настроек черного списка (CBT.CATEGORY:blockList).
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
 
     :return: объект клавиатуры настроек черного списка.
     """
@@ -271,7 +271,7 @@ def commands_list(c: Exbot, offset: int) -> K:
     """
     Генерирует клавиатуру со списком команд (CBT.CMD_LIST:<offset>).
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
     :param offset: смещение списка команд.
 
     :return: объект клавиатуры со списком команд.
@@ -297,7 +297,7 @@ def edit_command(c: Exbot, command_index: int, offset: int) -> K:
     """
     Генерирует клавиатуру изменения параметров команды (CBT.EDIT_CMD:<command_num>:<offset>).
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
     :param command_index: номер команды.
     :param offset: смещение списка команд.
 
@@ -370,7 +370,7 @@ def lots_list(exbot: Exbot, offset: int) -> K:
     """
     Создает клавиатуру со списком лотов с автовыдачей. (lots:<offset>).
 
-    :param exbot: объект Вертекса.
+    :param exbot: объект биржевого бота.
     :param offset: смещение списка лотов.
 
     :return: объект клавиатуры со списком лотов с автовыдачей.
@@ -396,7 +396,7 @@ def funpay_lots_list(c: Exbot, offset: int):
     """
     Генерирует клавиатуру со списком лотов текущего профиля (funpay_lots:<offset>).
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
     :param offset: смещение списка слотов.
 
     :return: объект клавиатуры со списком лотов текущего профиля.
@@ -425,7 +425,7 @@ def edit_lot(c: Exbot, lot_number: int, offset: int) -> K:
     """
     Генерирует клавиатуру изменения лота (CBT.EDIT_AD_LOT:<lot_num>:<offset>).
 
-    :param c: экземпляр Вертекса.
+    :param c: экземпляр биржевого бота.
     :param lot_number: номер лота.
     :param offset: смещение списка слотов.
 
@@ -547,7 +547,7 @@ def edit_template(c: Exbot, template_index: int, offset: int) -> K:
     """
     Генерирует клавиатуру изменения шаблона ответа (CBT.EDIT_TMPLT:<template_index>:<offset>).
 
-    :param c: экземпляр Вертекса.
+    :param c: экземпляр биржевого бота.
     :param template_index: числовой индекс шаблона ответа.
     :param offset: смещение списка шаблонов ответа.
 
@@ -566,7 +566,7 @@ def templates_list_ans_mode(c: Exbot, offset: int, node_id: int, username: str, 
     (CBT.TMPLT_LIST_ANS_MODE:{offset}:{node_id}:{username}:{prev_page}:{extra}).
 
 
-    :param c: объект Вертекса.
+    :param c: объект биржевого бота.
     :param offset: смещение списка шаблонов ответа.
     :param node_id: ID чата, в который нужно отправить шаблон.
     :param username: никнейм пользователя, с которым ведется переписка.

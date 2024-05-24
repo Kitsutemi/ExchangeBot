@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from vertex import Vertex
+    from exbot import Exbot
 
 import FunPayAPI.types
 
@@ -120,12 +120,12 @@ def load_old_users() -> list[int]:
     return json.loads(users)
 
 
-def create_greeting_text(vertex: Vertex):
+def create_greeting_text(exbot: Exbot):
     """
     Генерирует приветствие для вывода в консоль после загрузки данных о пользователе.
     """
-    account = vertex.account
-    balance = vertex.balance
+    account = exbot.account
+    balance = exbot.balance
     current_time = datetime.now()
     if current_time.hour < 4:
         greetings = "Какая прекрасная ночь"
@@ -323,7 +323,7 @@ def format_order_text(text: str, order: FunPayAPI.types.OrderShortcut | FunPayAP
 
 def restart_program():
     """
-    Полный перезапуск FPV.
+    Полный перезапуск ExBot.
     """
     python = sys.executable
     os.execl(python, python, *sys.argv)
@@ -339,7 +339,7 @@ def restart_program():
 
 def shut_down():
     """
-    Полное отключение FPV.
+    Полное отключение ExBot.
     """
     try:
         process = psutil.Process()

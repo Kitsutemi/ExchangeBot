@@ -28,7 +28,7 @@ import tg_bot.bot
 from threading import Thread
 
 
-logger = logging.getLogger("FPV")
+logger = logging.getLogger("ExBot")
 localizer = Localizer()
 _ = localizer.translate
 
@@ -54,7 +54,7 @@ def check_proxy(proxy: dict) -> bool:
 
 def get_exbot() -> None | Exbot:
     """
-    Возвращает существующий экземпляр вертекса.
+    Возвращает существующий экземпляр бота.
     """
     if hasattr(Exbot, "instance"):
         return getattr(Exbot, "instance")
@@ -68,9 +68,7 @@ class PluginData:
                  path: str, plugin: ModuleType, settings_page: bool, delete_handler: Callable | None, enabled: bool):
         """
         :param name: название плагина.
-        :param version: версия плагина.
         :param desc: описание плагина.
-        :param credentials: авторы плагина.
         :param uuid: UUID плагина.
         :param path: путь до плагина.
         :param plugin: экземпляр плагина как модуля.
@@ -79,7 +77,6 @@ class PluginData:
         :param enabled: включен ли плагин.
         """
         self.name = name
-        self.version = version
         self.description = desc
         self.credits = credentials
         self.uuid = uuid
@@ -138,7 +135,7 @@ class Exbot(object):
 
         self.balance: FunPayAPI.types.Balance | None = None
         self.raise_time = {}  # Временные метки поднятия категорий {id игры: след. время поднятия}
-        self.profile: FunPayAPI.types.UserProfile | None = None  # FunPay профиль для всего вертекса (+ хэндлеров)
+        self.profile: FunPayAPI.types.UserProfile | None = None  # FunPay профиль для всего биржевого бота (+ хэндлеров)
         self.tg_profile: FunPayAPI.types.UserProfile | None = None  # FunPay профиль (для Telegram-ПУ)
         self.last_tg_profile_update = datetime.datetime.now()  # Последнее время обновления профиля для TG-ПУ
         self.curr_profile: FunPayAPI.types.UserProfile | None = None  # Текущий профиль (для восст. / деакт. лотов.)
@@ -227,7 +224,7 @@ class Exbot(object):
         попыток)
         :param attempts: максимальное кол-во попыток.
         :param update_telegram_profile: обновить ли информацию о профиле для TG ПУ?
-        :param update_main_profile: обновить ли информацию о профиле для всего вертекса (+ хэндлеров)?
+        :param update_main_profile: обновить ли информацию о профиле для всего биржевого бота (+ хэндлеров)?
 
         :return: True, если информация обновлена, False, если превышено макс. кол-во попыток.
         """
@@ -518,7 +515,7 @@ class Exbot(object):
     # Управление процессом
     def init(self):
         """
-        Инициализирует вертекс: регистрирует хэндлеры, инициализирует и запускает Telegram бота,
+        Инициализирует биржевой бот: регистрирует хэндлеры, инициализирует и запускает Telegram бота,
         получает данные аккаунта и профиля.
         """
         self.add_handlers_from_plugin(handlers)
@@ -547,7 +544,7 @@ class Exbot(object):
 
     def run(self):
         """
-        Запускает вертекс после инициализации. Используется для первого старта.
+        Запускает биржевой бот после инициализации. Используется для первого старта.
         """
         self.run_id += 1
         self.start_time = int(time.time())
@@ -560,7 +557,7 @@ class Exbot(object):
 
     def start(self):
         """
-        Запускает вертекс после остановки. Не используется.
+        Запускает биржевой бот после остановки. Не используется.
         """
         self.run_id += 1
         self.run_handlers(self.pre_start_handlers, (self, ))
@@ -569,7 +566,7 @@ class Exbot(object):
 
     def stop(self):
         """
-        Останавливает вертекс. Не используется.
+        Останавливает биржевой бот. Не используется.
         """
         self.run_id += 1
         self.run_handlers(self.pre_start_handlers, (self, ))

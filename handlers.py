@@ -29,7 +29,7 @@ LAST_STACK_ID = ""
 MSG_LOG_LAST_STACK_ID = ""
 
 
-logger = logging.getLogger("FPV.handlers")
+logger = logging.getLogger("ExBot.handlers")
 localizer = Localizer()
 _ = localizer.translate
 
@@ -240,7 +240,7 @@ def send_new_msg_notification_handler(c: Exbot, e: NewMessageEvent) -> None:
         if i.message.author_id == last_message_author_id and i.message.by_bot == last_by_bot:
             author = ""
         elif i.message.author_id == c.account.id:
-            author = f"<i><b>🤖 {_('you')} (<i>FPV</i>):</b></i> " if i.message.by_bot else f"<i><b>🫵 {_('you')}:</b></i> "
+            author = f"<i><b>🤖 {_('you')} (<i>ExBot</i>):</b></i> " if i.message.by_bot else f"<i><b>🫵 {_('you')}:</b></i> "
         elif i.message.author_id == 0:
             author = f"<i><b>🔵 {i.message.author}: </b></i>"
         elif i.message.badge:
@@ -401,7 +401,7 @@ def get_lot_config_by_name(c: Exbot, name: str) -> configparser.SectionProxy | N
     """
     Ищет секцию лота в конфиге автовыдачи.
 
-    :param c: объект вертекса.
+    :param c: объект биржевого бота.
     :param name: название лота.
 
     :return: секцию конфига или None.
@@ -576,7 +576,7 @@ def update_lot_state(Exbot: Exbot, lot: types.LotShortcut, task: int) -> bool:
     """
     Обновляет состояние лота
 
-    :param Exbot: объект вертекса.
+    :param Exbot: объект биржевого бота.
     :param lot: объект лота.
     :param task: -1 - деактивировать лот. 1 - активировать лот.
 
@@ -723,7 +723,7 @@ def send_bot_started_notification_handler(c: Exbot, *args):
     """
     if c.telegram is None:
         return
-    text = _("fpv_init", c.account.username, c.account.id,
+    text = _("ExBot_init", c.account.username, c.account.id,
              c.balance.total_rub, c.balance.total_usd, c.balance.total_eur, c.account.active_sales)
     for i in c.telegram.init_messages:
         try:
