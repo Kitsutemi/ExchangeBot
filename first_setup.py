@@ -133,7 +133,7 @@ def first_setup():
         break
 
     print(f"\n{Fore.MAGENTA}{Style.BRIGHT}┌── {Fore.CYAN}"
-          f"Если хочешь, ты можешь указать свой User-agent. \nUser-Agent можно получить из поиска по запросу 'my user agent'\nДля того, чтобы использовать User-Agent по умолчанию, нажмите Enter. "
+          f"Если хотите, вы можете указать свой User-agent. \n{Fore.MAGENTA}{Style.BRIGHT}|{Style.RESET_ALL}{Style.BRIGHT}{Fore.CYAN}   User-Agent можно получить из поиска по запросу 'my user agent'\n{Fore.MAGENTA}{Style.BRIGHT}|{Style.RESET_ALL}{Fore.CYAN}{Style.BRIGHT}   Для того, чтобы использовать User-Agent по умолчанию, нажмите Enter. "
           f"{Fore.RED}¯(°_o)/¯{Style.RESET_ALL}")
     user_agent = input(f"{Fore.MAGENTA}{Style.BRIGHT}└───> {Style.RESET_ALL}").strip()
     if user_agent:
